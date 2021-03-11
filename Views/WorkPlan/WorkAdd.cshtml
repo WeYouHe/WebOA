@@ -1,0 +1,95 @@
+﻿
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/Content/css/font.css">
+    <link rel="stylesheet" href="/Content/css/xadmin.css">
+    <script src="/Content/js/jquery.min.js"></script>
+    <script type="text/javascript" src="/Content/lib/layui/layui.js" charset="utf-8"></script>
+    <script type="text/javascript" src="/Content/js/xadmin.js"></script>
+</head>
+
+<body>
+    <div class="x-body">
+        <form class="layui-form layui-form-pane layui-col-md12" id="WorkAdd">
+            <div class="layui-form-item">
+                <label for="username" class="layui-form-label">
+                    <span class="x-red">*</span>计划名称
+                </label>
+                <div class="layui-input-inline">
+                    <input type="text" id="PLANT_NAME" name="PLANT_NAME" required 
+                           autocomplete="off" class="layui-input">
+                </div>
+                
+            </div>
+            <div class="layui-form-item">
+                <label for="CARRY_USER" class="layui-form-label">
+                    <span class="x-red">*</span>计划执行人
+                </label>
+                <div class="layui-input-inline">
+                    <input type="text" id="CARRY_USER" name="CARRY_USER" required 
+                           autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label for="L_email" class="layui-form-label">
+                    <span class="x-red">*</span>计划负责人
+                </label>
+                <div class="layui-input-inline">
+                    <input type="text" id="CREA_USER" name="CREA_USER" 
+                           autocomplete="off"  readonly="readonly" class="layui-input" disabled value="@User.Identity.Name">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label for="PLANT_INFO" class="layui-form-label">
+                    <span class="x-red">*</span>计划内容
+                </label>
+                <div class="layui-input-inline">
+                    <textarea id="PLANT_INFO" name="PLANT_INFO"  style="width:300px;" lay-verify="required" class="layui-textarea"></textarea>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <button class="layui-btn" lay-filter="add" onclick="Add()">增加</button>
+                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            </div>
+        </form>
+    </div>
+    <script>
+        
+        //layui.use(['form', 'layer'], function () {
+        //    $ = layui.jquery;
+        //    var form = layui.form,
+        //    layer = layui.layer;
+            
+
+
+        //    //监听提交
+        //    form.on('submit(add)', function (data) {
+        //        console.log(data);
+                
+        //        layer.alert("增加成功", { icon: 6 }, function () {
+        //            // 获得frame索引
+        //            var index = parent.layer.getFrameIndex(window.name);
+        //            //关闭当前frame
+        //            parent.layer.close(index);
+        //        });
+        //        return false;
+        //    });
+
+
+        //});
+       
+        function Add() {
+            $.post("/WorkPlan/WorkAdd/", $("#WorkAdd").serialize(), function (res) {
+                if (res.success) {
+                    lalert("添加成功");
+                } else {
+                    alert("添加失败:" + res.message);
+                }
+            }, "json");
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,50 @@
+﻿@model WebOA.Models.User
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/Content/css/font.css">
+    <link rel="stylesheet" href="/Content/css/xadmin.css">
+    <link href="~/Content/lib/layui/css/layui.css" rel="stylesheet" />
+    <script src="/Content/js/jquery.min.js"></script>
+    <script type="text/javascript" src="/Content/lib/layui/layui.js" charset="utf-8"></script>
+    <script type="text/javascript" src="/Content/js/xadmin.js"></script>
+</head>
+<body class="x-body">
+    <div>
+        <form class="layui-form" id="SelfChange" action="">
+            <div class="layui-form-item">
+                <label class="layui-form-label">部门名称:</label>
+                <div class="layui-input-block">
+                    <input type="text" name="DeptName" id="DeptName"  autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button class="layui-btn" lay-filter="save" lay-submit="" type="button" onclick="add()">
+                        确定
+                    </button>
+                    <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                </div>
+            </div>
+
+        </form>
+        <script src="/Content/lib/layui/layui.js"></script>
+        <script>
+            function add() {
+                var a = $("#DeptName").val();
+                debugger
+                $.post("/Deptment/Add", { name: $("#DeptName").val() }, function (res) {
+                    if (res.success) {
+                        layer.msg("添加部门成功");
+                        var index = parent.layer.getFrameIndex(window.name);
+                        parent.layer.close(index);
+                    } else {
+                        layer.alert("添加失败:" + res.message);
+                    }
+                }, "json");
+            }
+        </script>
+    </div>
+</body>
+</html>

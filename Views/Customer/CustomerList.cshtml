@@ -1,0 +1,140 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="renderer" content="webkit">
+    <link rel="stylesheet" href="/Content/css/font.css">
+    <link rel="stylesheet" href="/Content/css/xadmin.css">
+    <script src="/Content/js/jquery.min.js"></script>
+    <script type="text/javascript" src="/Content/lib/layui/layui.js" charset="utf-8"></script>
+    <script type="text/javascript" src="/Content/js/xadmin.js"></script>
+</head>
+
+<body>
+    <div class="x-nav">
+        <a class="layui-btn layui-btn-primary layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right" href="javascript:location.replace(location.href);" title="刷新">
+            <i class="layui-icon" style="line-height:38px">ဂ</i>
+        </a>
+    </div>
+    <div class="x-body">
+        <div class="layui-row">
+            <form class="layui-form" onsubmit="return false;">
+                姓名：
+                <div class="layui-inline">
+                    <input id="Name" class="layui-input" placeholder="请输入姓名" autocomplete="off" name="Name">
+                </div>
+                类型：
+                <div class="layui-inline">
+                    @Html.DropDownList("DeptId", ViewBag.Depts as List<SelectListItem>, "--全部--")
+                </div>
+                <button class="layui-btn" type="button" data-type="reload" onclick="sub()">搜索</button>
+            </form>
+
+        </div>
+        <table class="layui-hide" id="tableId" lay-filter="tableId"></table>
+
+        <script type="text/html" id="toolbarTpl">
+            <div class="layui-btn-container">
+                <button class="layui-btn layui-btn-sm layui-btn-normal" onclick="batchEnabled()" lay-event="batchEnabled">批量删除</button>
+            </div>
+        </script>
+        <script type="text/html" id="operationTpl">
+            <a href="javascript:" title="编辑" lay-event="edit"><i class="layui-icon">&#xe642;</i></a>
+            <a href="javascript:" title="删除" lay-event="del"><i class="layui-icon">&#xe640;</i></a>
+        </script>
+    </div>
+    <script>
+        var layui, table, $, layer;
+        layui.use(['table', 'layer'], function () {
+            $ = layui.jquery;
+            table = layui.table;
+            layer = layui.layer;
+            //第一个实例
+            table.render({
+                elem: '#tableId'
+               , height: 530
+               , url: '/Customer/CustomerList'
+               , page: true//开启分页
+               , method: "POST",
+                loading: true
+               , cols: [[ //表头
+                  { field: 'left', type: 'checkbox', fixed: 'left' }
+                   , { field: 'ID', title: 'ID', width: 100 }
+                   , { field: 'CLIENT_NAME', title: '客户姓名', width: 120 }
+                   , { field: 'CLIENT_VOCATION', title: '所属行业', width: 150 }
+                   , { field: 'CLIENT_CY', title: '联系方式', width: 150 }
+                   , { field: 'CLIENT_ADDRESS', title: '客户地址', width: 150 }
+                   , { field: 'CLIENT_BANK', title: '开户银行', width: 100 }
+                   , { field: 'CLIENT_BANKNUM', title: '银行账号', width: 160 }
+                   , { field: 'CLIENT_TYPE_ID', title: '客户类型', width: 160, templet: function (res) { if (res.CLIENT_TYPE_ID == "1") { return '个体'; } else if (res.CLIENT_TYPE_ID == "2") { return '企业'; } else { return '未说明'; } } }
+                   , { field: 'CLIENT_USER', title: '客户负责人', width: 160 }
+                    , { field: 'right', title: '操作', width: 100, align: "center", fixed: "right", toolbar: "#operationTpl" }
+               ]], toolbar: "#toolbarTpl"
+            });
+            table.on('tool(tableId)', function (obj) {
+                var data = obj.data;
+                var layEvent = obj.event;
+                var tr = obj.tr;
+                if (layEvent === 'del') {
+                    layer.confirm('真的删除这行么', function (index) {
+                        var id = data.ID;
+                        $.post("/Customer/Dels", { id: id }, function (res) {
+                            if (res.success) {
+                                obj.del();
+                                layer.msg("删除成功");
+                                layer.close(index);
+                                sub();
+                            } else {
+                                layer.msg(res.message);
+                                layer.close(index);
+                            }
+                        }, "json");
+                    });
+                } else if (layEvent === 'edit') { //编辑
+                    layer.open({
+                        title: "修改",
+                        type: 2,
+                        content: "/Customer/CustomerEdit/" + data.ID,
+                        area: ["30%", "70%"]
+                    });
+                    obj.update({
+                        username: '123'
+                      , title: 'xxx'
+                    });
+
+                }
+
+            });
+        });
+        function sub() {
+            layui.table.reload('tableId', {
+                url: "/Customer/CustomerList/",
+                where: {
+                    Name: $("#Name").val(),
+                    CType: $("#DeptId").val()
+                }
+            });
+        }
+        function batchEnabled() {
+            var checkStatus = table.checkStatus("tableId");
+            //console.log(checkStatus.data) //获取选中行的数据
+            var idsArray = [];
+            for (var i = 0; i < checkStatus.data.length; i++) {
+                var ID = checkStatus.data[i].ID;
+                idsArray.push(ID);
+            }
+            var ids = idsArray.join(",");
+            $.post("/Customer/Del", { ids: ids }, function (res) {
+                if (res.success) {
+                    layer.msg("批量删除成功")
+                    layer.close(index);
+                    sub();
+                } else {
+                    layer.msg(res.message);
+                }
+            }, "json");
+        }
+
+    </script>
+</body>
+</html>

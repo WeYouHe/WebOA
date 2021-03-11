@@ -1,0 +1,96 @@
+﻿@model WebOA.Models.Client
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <link href="~/Content/lib/layui/css/layui.css" rel="stylesheet" />
+    <link href="~/Content/css/x-admin.css" rel="stylesheet" />
+    <link href="~/Content/css/xadmin.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="x-body">
+        <form class="layui-form" id="SelfChange" name="SelfChange">
+
+            <div style="width:480px" class="layui-form-item">
+                <label class="layui-form-label">客户姓名</label>
+                <div class="layui-input-block">
+                    <input type="text" name="CLIENT_NAME" autocomplete="off"  id="CLIENT_NAME"  class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">所属行业</label>
+                <div class="layui-inline">
+                    <input type="text" name="CLIENT_VOCATION"required id="CLIENT_VOCATION" class="layui-input">
+
+                </div>
+            </div>
+            <div style="width:480px" class="layui-form-item">
+                <label class="layui-form-label">客户类型</label>
+                <div class="layui-inline">
+                    @Html.DropDownList("CLIENT_TYPE_ID",  ViewBag.Depts as List<SelectListItem>)
+                </div>
+            </div>
+            <div style="width:480px" class="layui-form-item">
+                <label class="layui-form-label">客户地址</label>
+                <div class="layui-input-block">
+                    <input type="text" name="CLIENT_ADDRESS" autocomplete="off" id="CLIENT_ADDRESS" class="layui-input">
+                </div>
+            </div>
+            <div style="width:480px" class="layui-form-item">
+                <label class="layui-form-label">联系方式</label>
+                <div class="layui-input-block">
+                    <input type="text" name="CLIENT_CY" autocomplete="off" lay-verify="phone" required id="CLIENT_CY" class="layui-input">
+                </div>
+            </div>
+            <div style="width:480px" class="layui-form-item">
+                <label class="layui-form-label">开户银行</label>
+                <div class="layui-input-block">
+                    <input type="text" name="CLIENT_BANK" autocomplete="off" id="CLIENT_BANK" class="layui-input">
+                </div>
+            </div>
+            <div style="width:480px" class="layui-form-item">
+                <label class="layui-form-label">银行账号</label>
+                <div class="layui-input-block">
+                    <input type="text" name="CLIENT_BANKNUM" autocomplete="off" lay-verify="number"  id="CLIENT_BANKNUM" class="layui-input">
+                </div>
+            </div>
+            <div style="width:480px" class="layui-form-item">
+                <label class="layui-form-label">客户负责人</label>
+                <div class="layui-input-block">
+                    <input type="text" name="CLIENT_USER" autocomplete="off" disabled  disabledrequired id="CLIENT_USER"  class="layui-input" value="@User.Identity.Name">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button class="layui-btn" lay-filter="save" lay-submit="" type="button" onclick="tianjia()">
+                        添加
+                    </button>
+                    <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <script src="~/Content/lib/layui/layui.js"></script>
+    <script src="~/Content/js/x-layui.js"></script>
+    <script>
+        var layer, form, $;
+        layui.use(['form'], function () {
+            $ = layui.jquery;
+            var form = layui.form, layer = layui.layer;
+        });
+
+        function tianjia() {
+            $.post("/Customer/CustomerAdd", $("#SelfChange").serialize(), function (res) {
+                if (res.success) {
+                    layer.msg("添加成功");
+                    var index = parent.layer.getFrameIndex(window.name); //获取窗口索引
+                    parent.layer.close(index);
+                } else {
+                    layer.alert("添加失败:" + res.message);
+                }
+            }, "json");
+        }
+    </script>
+</body>
+</html>

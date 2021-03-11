@@ -1,0 +1,207 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="renderer" content="webkit">
+    <link rel="stylesheet" href="/Content/css/font.css">
+    <link rel="stylesheet" href="/Content/css/xadmin.css">
+    <script src="/Content/js/jquery.min.js"></script>
+    <script type="text/javascript" src="/Content/lib/layui/layui.js" charset="utf-8"></script>
+    <script type="text/javascript" src="/Content/js/xadmin.js"></script>
+
+</head>
+
+<body>
+    <div class="x-nav">
+        <a class="layui-btn layui-btn-primary layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right" href="javascript:location.replace(location.href);" title="刷新">
+            <i class="layui-icon" style="line-height:38px">ဂ</i>
+        </a>
+    </div>
+    <div class="x-body">
+        <div class="layui-row">
+            <form class="layui-form" onsubmit="return false;">
+                姓名：
+                <div class="layui-inline">
+                    <input id="LEAVE_NAME" class="layui-input" placeholder="请输入姓名" autocomplete="off" name="LEAVE_NAME">
+                </div>
+                部门：
+                <div class="layui-inline">
+                    @Html.DropDownList("DEPART_ID", ViewBag.Depts as List<SelectListItem>, "--全部--")
+                </div>
+                请假类型：
+                <div class="layui-inline">
+                        <select name="LEAVE_TYPE" id="LEAVE_TYPE">
+                            <option value="">请选择请假类型</option>
+                            <option value="0">事假</option>
+                            <option value="1">病假</option>
+                            <option value="2">产假</option>
+                            <option value="3">婚假</option>
+                        </select>
+                </div>
+                <button class="layui-btn" type="button" data-type="reload" onclick="sub()">搜索</button>
+            </form>
+
+        </div>
+        <table class="layui-hide" id="tableId" lay-filter="tableId"></table>
+
+        <script type="text/html" id="toolbarTpl">
+            <div class="layui-btn-container">
+                <button class="layui-btn layui-btn-sm layui-btn-normal" onclick="batchEnabled()" lay-event="batchEnabled">批量通过</button>
+                <button class="layui-btn layui-btn-sm layui-btn-warm" onclick="batchDisabled()" lay-event="batchDisabled">批量不通过</button>
+                @*<button class="layui-btn layui-btn-sm layui-btn-warm"onclick="Printexport()" lay-event="export">导出</button>*@
+            </div>
+        </script>
+        <script type="text/html" id="operationTpl">
+            <button type="button" lay-event="PassYes" class="layui-btn layui-btn-primary layui-btn-sm">
+                <i class="layui-icon">&#xe605;</i>
+            </button>
+            <button type="button" lay-event="PassNo" class="layui-btn layui-btn-primary layui-btn-sm">
+                <i class="layui-icon">&#x1006;</i>
+            </button>
+            <button type="button" lay-event="del" class="layui-btn layui-btn-primary layui-btn-sm">
+                <i class="layui-icon">&#xe640;</i>
+            </button>
+            @*<button type="button" lay-event="edit" class="layui-btn">增加</button>
+            <a href="javascript:" title="通过" lay-event="edit"><i class="layui-icon">&#xe642;</i></a>
+            <a href="javascript:" title="不通过" lay-event="edit"><i class="layui-icon">&#xe642;</i></a>
+            <a href="javascript:" title="删除" lay-event="del"><i class="layui-icon">&#xe640;</i></a>*@
+        </script>
+    </div>
+    <script type="text/html" id="FLAGTpl">
+        {{#  if(d.CHECK_FLAG == 0){ }}
+        <span class="layui-btn layui-btn-normal layui-btn-xs">待审核</span>
+        {{#  } else if(d.CHECK_FLAG == 1) { }}
+        <span class="layui-btn layui-btn-warm layui-btn-xs">审核通过</span>
+        {{#  } else if(d.CHECK_FLAG == 2) { }}
+        <span class="layui-btn layui-btn-warm layui-btn-xs">审核未通过</span>
+        {{#  } }}
+    </script>
+    <script>
+        var layui, table, $, layer;
+        layui.use(['table', 'layer'], function () {
+            $ = layui.jquery;
+            table = layui.table;
+            layer = layui.layer;
+            //第一个实例
+            table.render({
+                elem: '#tableId'
+               , height: 530
+               , url: '/Leave/LeavePass/'
+               , page: true//开启分页
+               , method: "POST",
+                loading: true
+               , cols: [[ //表头
+                   { field: 'left', type: 'checkbox', fixed: 'left' }
+                   , { field: 'ID', title: 'ID', width: 80 }
+                   , { field: 'LEAVE_NAME', title: '请假人', width: 100 }
+                   , { field: 'DEPART_ID', title: '部门', width: 120, templet: function (res) { if (res.DEPART_ID == "1") { return '人事部'; } else if (res.DEPART_ID == "2") { return '行政部'; } else if (res.DEPART_ID == "3") { return '开发部'; } else if (res.DEPART_ID == "4") { return '财务部'; } else { return '未分配部门'; } } }
+                   , { field: 'START_DATE', title: '请假开始时间', width: 150 }
+                   , { field: 'END_DATE', title: '请假结束时间', width: 150 }
+                   , { field: 'LEAVE_TYPE', title: '请假类型', width: 120, templet: function (res) { if (res.LEAVE_TYPE == "0") { return '事假'; } else if (res.LEAVE_TYPE == "1") { return '病假'; } else if (res.LEAVE_TYPE == "2") { return '产假'; } else if (res.LEAVE_TYPE == "3") { return '婚假'; } else { return '未说明'; } } }
+                   , { field: 'REASONS', title: '请假原因', width: 160 }
+                   , { field: 'CHECK_DATE', title: '回复时间', width: 160 }
+                   , { field: 'CHECK_FLAG', title: '审核状态', width: 160, templet: "#FLAGTpl" }
+                   , { field: 'CHECK_NAME', title: '回复人', width: 110 }
+                    , { field: 'right', title: '操作', width: 200, align: "center", fixed: "right", toolbar: "#operationTpl" }
+               ]], toolbar: "#toolbarTpl"
+            });
+            table.on('tool(tableId)', function (obj) {
+                var data = obj.data;
+                var layEvent = obj.event;
+                var tr = obj.tr;
+                var id = data.ID;
+                if (layEvent === 'del') {
+                    layer.confirm('真的删除这行么', function (index) {
+                        $.post("/Leave/Dels", { id: id }, function (res) {
+                            if (res.success) {
+                                obj.del();
+                                layer.msg("删除成功");
+                                layer.close(index);
+                                search();
+                                sub();
+                            } else {
+                                layer.msg(res.message);
+                                layer.close(index);
+                            }
+                        }, "json");
+                    });
+                } else if (layEvent === 'PassYes') {
+                    $.post("/Leave/StatusPassYes/", { id: id }, function (res) {
+                        if (res.success) {
+                            layer.msg("更新状态成功");
+                            sub();
+                        } else {
+                            layer.msg(res.message);
+                        }
+                    }, "json");
+                } else if (layEvent === 'PassNo') {
+                    $.post("/Leave/StatusPassNo/", { id: id }, function (res) {
+                        if (res.success) {
+                            layer.msg("更新状态成功");
+                            sub();
+                        } else {
+                            layer.msg(res.message);
+                        }
+                    }, "json");
+                }
+
+            });
+        });
+        function sub() {
+            layui.table.reload('tableId', {
+                url: "/Leave/LeavePass/",
+                where: {
+                    LEAVE_NAME: $("#LEAVE_NAME").val(),
+                    DEPART_ID: $("#DEPART_ID").val(),
+                    LEAVE_TYPE: $("#LEAVE_TYPE").val()
+                }
+            });
+        }
+        function batchEnabled() {
+            var checkStatus = table.checkStatus("tableId");
+            //console.log(checkStatus.data) //获取选中行的数据
+            var idsArray = [];
+            var StatusArray = [];
+            for (var i = 0; i < checkStatus.data.length; i++) {
+                var ID = checkStatus.data[i].ID;
+                var StatusId = checkStatus.data[i].CHECK_FLAG;
+                idsArray.push(ID);
+                StatusArray.push(StatusId)
+            }
+            var ids = idsArray.join(",");
+            var StusId = StatusArray.join(",");
+            for (var i = 0; i < StusId; i++) {
+                if (StusId[i] = 1 || StusId[i] == 2) {
+                    layer.msg("请确认审核状态！")
+                }
+            }
+            $.post("/Leave/Pub", { ids: ids }, function (res) {
+                if (res.success) {
+                    layer.msg("批量通过成功")
+                    sub()
+                } else {
+                    layer.msg(res.message);
+                }
+            }, "json");
+        }
+        function batchDisabled() {
+            var checkStatus = table.checkStatus("tableId");
+            //console.log(checkStatus.data) //获取选中行的数据
+            var idsArray = [];
+            for (var i = 0; i < checkStatus.data.length; i++) {
+                var ID = checkStatus.data[i].ID;
+                idsArray.push(ID);
+            }
+            var ids = idsArray.join(",");
+            $.post("/Leave/PubNO", { ids: ids }, function (res) {
+                if (res.success) {
+                    layer.msg("批量不通过成功")
+                    sub()
+                } else {
+                    layer.msg(res.message);
+                }
+            }, "json");
+        }
+    </script>
+</body>
+</html>

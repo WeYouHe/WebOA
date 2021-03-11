@@ -1,0 +1,117 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="renderer" content="webkit">
+    <link rel="stylesheet" href="/Content/css/font.css">
+    <link rel="stylesheet" href="/Content/css/xadmin.css">
+    <script src="/Content/js/jquery.min.js"></script>
+    <script type="text/javascript" src="/Content/lib/layui/layui.js" charset="utf-8"></script>
+    <script type="text/javascript" src="/Content/js/xadmin.js"></script>
+</head>
+
+<body>
+    <div class="x-nav">
+        <a class="layui-btn layui-btn-primary layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right" href="javascript:location.replace(location.href);" title="刷新">
+            <i class="layui-icon" style="line-height:38px">ဂ</i>
+        </a>
+    </div>
+    <div class="x-body">
+        <div class="layui-row">
+            <form class="layui-form" onsubmit="return false;">
+                部门名称：
+                <div class="layui-inline">
+                    <input class="layui-input" placeholder="请输入部门名称" autocomplete="off" name="name" id="name">
+                </div>
+
+                <button class="layui-btn" onclick="Sub()" lay-filter="search"><i class="layui-icon layui-icon-search"></i></button>
+            </form>
+        </div>
+        <table class="layui-hide" id="tableId" lay-filter="tableId"></table>
+
+        <script type="text/html" id="operationTpl">
+            <a href="javascript:" title="修改" lay-event="edit"><i class="layui-icon">&#xe642;</i></a>
+            <a href="javascript:" title="删除" lay-event="del"><i class="layui-icon">&#xe640;</i></a>
+        </script>
+        <script type="text/html" id="toolbarTpl">
+            <div class="layui-btn-container">
+                <button class="layui-btn layui-btn-sm layui-btn-normal" onclick="DeptAdd()">添加</button>
+            </div>
+        </script>
+    </div>
+
+    <script>
+        var layui, table, $, layer;
+        layui.use(['table', 'layer'], function () {
+            $ = layui.jquery;
+            table = layui.table;
+
+            //第一个实例
+            table.render({
+                elem: '#tableId'
+               , height: 550
+               , url: '/Deptment/DeptmentList/'
+               , page: true
+               , method: "POST"
+               , cols: [[
+                    { field: 'ID', title: 'ID', align: "center", width: 80 }
+                   , { field: 'DepNAME', title: '部门名称', align: "center", width: 150 }
+                    , { field: 'right', title: '操作', width: 100, align: "center", fixed: "right", toolbar: "#operationTpl" }
+               ]], toolbar: "#toolbarTpl"
+            });
+            
+            table.on('tool(tableId)', function (obj) {
+                var data = obj.data;
+                var layEvent = obj.event;
+                var tr = obj.tr;
+
+                if (layEvent === 'edit') { //编辑
+                    layer.open({
+                        title: "修改部门",
+                        type: 2,
+                        content: ["/Deptment/DeptUpdate/"+ data.ID, "no"],
+                        area: ["25%", "20%"]
+                    });
+                        
+
+                } else if (layEvent === 'del') {
+                    layer.confirm('真的删除这行么', function (index) {
+                        var id = data.ID;
+                        $.post("/Deptment/Dels/", { id: id }, function (res) {
+                            if (res.success) {
+                                obj.del();
+                                layer.msg("删除成功");
+                                Sub();
+                            } else {
+                                layer.msg(res.message);
+                                layer.close(index);
+                            }
+                        }, "json");
+                    });
+                }
+
+            });
+        });
+        function Sub() {
+            layui.table.reload('tableId', {
+                url: "/Deptment/DeptmentList/",
+                where: {
+                    name: $("#name").val(),
+                    RoleType: $("#RoleType").val(),
+                    StatusIS: $("#StatusIS").val()
+                }
+            });
+        }
+        function DeptAdd() {
+            layer.open({
+                title: "添加部门",
+                type: 2,
+                content: ["/Deptment/DeptAdd/", "no"],
+                area: ["25%", "20%"]
+            });
+
+        }
+    </script>
+</body>
+
+</html>

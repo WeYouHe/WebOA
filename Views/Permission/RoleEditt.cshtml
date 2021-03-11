@@ -1,0 +1,50 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>RoleEditt</title>
+    <script src="/Content/js/jquery.min.js"></script>
+    <script type="text/javascript" src="/Content/lib/layui/layui.js" charset="utf-8"></script>
+    <script type="text/javascript" src="/Content/js/xadmin.js"></script>
+</head>
+<body>
+    <div> 
+        <div class="layui-col-md3">
+            <div id="permissionTree"></div>
+        </div>
+    </div>
+    <script>
+        var layui, table, $,layer;
+        layui.use(['table', 'layer', 'tree'], function () {
+            $ = layui.jquery;
+            tree = layui.tree;
+            layer = layui.layer;
+
+
+                $.ajax("/permission/tree", "get", null, true).done(function (response) {
+                    tree.render({
+                        elem: '#permissionTree',
+                        data: response.data,
+                        showCheckbox: true,
+                        id: 'demoId1',
+                        isJump: true,
+                        click: function (obj) {
+                            var data = obj.data;
+                            layer.msg('状态：' + obj.state + '<br>节点数据：' + JSON.stringify(data));
+                        }
+                    });
+
+                }).fail(function (error) {
+                    layer.msg(error)
+                });
+
+            });
+    </script>
+</body>
+</html>

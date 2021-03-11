@@ -1,0 +1,88 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width,user-scalable=yes, minimum-scale=0.4, initial-scale=0.8,target-densitydpi=low-dpi" />
+    <link rel="stylesheet" href="/Content/css/font.css">
+    <link rel="stylesheet" href="/Content/css/xadmin.css">
+    <link href="/Content/lib/layui/css/layui.css" rel="stylesheet" />
+    <script src="/Content/js/jquery.min.js"></script>
+    <script type="text/javascript" src="/Content/lib/layui/layui.js" charset="utf-8"></script>
+    <script type="text/javascript" src="/Content/js/xadmin.js"></script>
+    </head>
+    <body>
+        <div class="x-body">
+        @*<div class="layui-row">
+            <div class="layui-col-md3">
+                <div id="permissionTree"></div>
+            </div>*@
+            <div class="layui-col-md9">
+                <table class="layui-hide" id="permissionTable" lay-filter="tableFilter"></table>
+            </div>
+        
+        </div>
+        <script>
+            var layui, table, $, layer;
+            layui.use(['tree','table','layer'], function () {
+                var tree = layui.tree;
+                $ = layui.jquery;
+                table = layui.table;
+                layer = layui.layer;
+
+                table.render({
+                    elem: '#permissionTable'
+               , height: 500
+               , url: '/Permission/Index/'
+               , page: true//开启分页
+               , method: "post"
+               , cols: [[ //表头
+                     { field: 'ID', title: 'ID', width: 100 }
+                   , { field: 'Title', title: '权限模块', width: 120 }
+                   , { field: 'ActionTitle', title: '开始时间', width: 150 }
+                   , { field: 'END_DATE', title: '结束时间', width: 150 }
+                   , { field: 'REASONS', title: '理由', width: 150 }
+                   , { field: 'CHECK_NAME', title: '审核人', width: 100 }
+                   , { field: 'CHECK_NAME', title: '工作内容', width: 160 }
+               ]]
+
+                });
+
+
+                //渲染
+                //function initPermissionTree() {
+                //    $.ajax({
+                //        url: 'json.php',
+                //        type: 'get',
+                //        dataType: 'data',
+                //        success: function (res) {
+                //            // 一旦设置的 dataType 选项，就不再关心 服务端 响应的 Content-Type 了
+                //            // 客户端会主观认为服务端返回的就是 JSON 格式的字符串
+                //            console.log(res)
+                //        }
+                //    });
+
+
+                //    $.ajax("/Permission/Tree", "get", true).done(function (response) {
+                //        tree.render({
+                //            elem: '#permissionTree',
+                //            data: response.data,
+                //            showCheckbox: true,
+                //            id: 'demoId1',
+                //            isJump: true,
+                //            click: function (obj) {
+                //                var data = obj.data;
+                //                layer.msg('状态：' + obj.state + '<br>节点数据：' + JSON.stringify(data));
+                //            }
+                //        });
+
+                //        initPermissionTable();
+                //    }).fail(function (error) {
+                //        console.log(error)
+                //    });
+                //}
+            });
+        </script>
+    </body>
+</html>

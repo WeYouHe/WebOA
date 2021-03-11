@@ -1,0 +1,95 @@
+﻿@model WebOA.Models.Client
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <link href="/Content/lib/layui/css/layui.css" rel="stylesheet" />
+    <link href="/Content/css/x-admin.css" rel="stylesheet" />
+    <link href="/Content/css/xadmin.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="x-body">
+        <form class="layui-form" id="SelfChange" name="SelfChange">
+            <div class="layui-form-item">
+                <label class="layui-form-label">客户姓名</label>
+                <div class="layui-input-block">
+                    <input type="text" name="ID" id="ID"  style="display:none" autocomplete="off" value="@Model.ID" class="layui-input">
+                    <input type="text" name="CLIENT_NAME" id="CLIENT_NAME" autocomplete="off" value="@Model.CLIENT_NAME" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">客户行业</label>
+                <div class="layui-input-block">
+                    <input type="text" name="CLIENT_VOCATION" autocomplete="off" id="CLIENT_VOCATION" value="@Model.CLIENT_VOCATION" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">客户类型</label>
+                <div class="layui-inline">
+                    @Html.DropDownList("CLIENT_TYPE_ID", ViewBag.Depts as List<SelectListItem>)
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">客户地址</label>
+                <div class="layui-input-block">
+                    <input type="text" name="CLIENT_ADDRESS" autocomplete="off" id="CLIENT_ADDRESS" value="@Model.CLIENT_ADDRESS" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">联系方式</label>
+                <div class="layui-input-block">
+                    <input type="text" name="CLIENT_CY" id="CLIENT_CY" autocomplete="off" value="@Model.CLIENT_CY" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">开户银行</label>
+                <div class="layui-input-block">
+                    <input type="text" name="CLIENT_BANK" id="CLIENT_BANK" autocomplete="off" value="@Model.CLIENT_BANK" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">银行账号</label>
+                <div class="layui-input-block">
+                    <input type="text" name="CLIENT_BANKNUM" id="CLIENT_BANKNUM" maxlength="19" autocomplete="off" value="@Model.CLIENT_BANKNUM" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">客户负责人</label>
+                <div class="layui-input-block">
+                    <input type="text" name="CLIENT_USER" id="CLIENT_USER" value="@Model.CLIENT_USER" placeholder="客户负责人" class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button class="layui-btn" lay-filter="save" lay-submit="" type="button" onclick="xiugai()">
+                        修改
+                    </button>
+                    <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <script src="/Content/lib/layui/layui.js"></script>
+    <script src="/Content/js/x-layui.js"></script>
+    <script>
+        var layer, form, $;
+        layui.use(['form'], function () {
+            $ = layui.jquery;
+            var form = layui.form, layer = layui.layer;
+        });
+
+        function xiugai() {
+            $.post("/Customer/CustomerEdit/", $("#SelfChange").serialize(), function (res) {
+                if (res.success) {
+                    layer.msg("修改成功");
+                    var index = parent.layer.getFrameIndex(window.name); //获取窗口索引
+                    parent.layer.close(index);
+                } else {
+                    layer.msg("修改失败:" + res.message);
+                }
+            }, "json");
+        }
+    </script>
+</body>
+</html>

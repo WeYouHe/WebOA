@@ -1,0 +1,132 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="renderer" content="webkit">
+    <link rel="stylesheet" href="/Content/css/font.css">
+    <link rel="stylesheet" href="/Content/css/xadmin.css">
+    <script src="/Content/js/jquery.min.js"></script>
+    <script type="text/javascript" src="/Content/lib/layui/layui.js" charset="utf-8"></script>
+    <script type="text/javascript" src="/Content/js/xadmin.js"></script>
+</head>
+
+<body>
+    <div class="x-nav">
+        <a class="layui-btn layui-btn-primary layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right" href="javascript:location.replace(location.href);" title="刷新">
+            <i class="layui-icon" style="line-height:38px">ဂ</i>
+        </a>
+    </div>
+    <div class="x-body">
+        <div class="layui-row">
+            <form class="layui-form layui-col-md12 x-so " onsubmit="return false;">
+                <div class="layui-inline">
+                    部门：
+                    <div class="layui-inline">
+                        <select name="CHECK_FLAG" id="CHECK_FLAG">
+                            <option value="">请选择审核状态</option>
+                            <option value="0">未审核</option>
+                            <option value="1">审核通过</option>
+                            <option value="2">审核未通过</option>
+                        </select>
+                    </div>
+                    <button class="layui-btn" lay-filter="search" onclick="sub()">
+                        <i class="layui-icon layui-icon-search"></i>
+                    </button>
+                </div>
+            </form>
+
+        </div>
+        <table class="layui-hide" id="tableId" lay-filter="tableId"></table>
+
+        <script type="text/html" id="toolbarTpl">
+            <div class="layui-btn-container">
+                <button class="layui-btn layui-btn-sm layui-btn-normal" onclick="ExtraAdd()">加班申请</button>
+            </div>
+        </script>
+        <script type="text/html" id="operationTpl">
+            <a href="javascript:" title="编辑" lay-event="edit"><i class="layui-icon">&#xe642;</i></a>
+        </script>
+    </div>
+    <script type="text/html" id="FLAGTpl">
+        {{#  if(d.CHECK_FLAG == 0){ }}
+        <span class="layui-btn layui-btn-normal layui-btn-xs">待审核</span>
+        {{#  } else if(d.CHECK_FLAG == 1) { }}
+        <span class="layui-btn layui-btn-warm layui-btn-xs">审核通过</span>
+        {{#  } else if(d.CHECK_FLAG == 2) { }}
+        <span class="layui-btn layui-btn-warm layui-btn-xs">审核未通过</span>
+        {{#  } }}
+    </script>
+    <script>
+        var layui, table, $,layer;
+        layui.use(['table', 'layer'], function () {
+            $ = layui.jquery;
+            table = layui.table;
+            layer = layui.layer;
+            //第一个实例
+            table.render({
+                elem: '#tableId'
+               , height: 500
+               , url: '/ExtraWork/ExtraWorkList/'
+               , page: true//开启分页
+               , method: "POST",
+                loading: true
+               , cols: [[ //表头
+                    { field: 'ID', title: 'ID', width: 100 }
+                   ,{ field: 'NAME', title: '姓名', width: 100 }
+                   , { field: 'START_DATE', title: '加班开始时间', width: 180 }
+                   , { field: 'END_DATE', title: '加班结束时间', width: 180}
+                   , { field: 'DEPART_ID', title: '部门', width: 150, templet: function (res) { if (res.DEPART_ID == "1") { return '人事部'; } else if (res.DEPART_ID == "2") { return '行政部'; } else if (res.DEPART_ID == "3") { return '开发部'; } else if (res.DEPART_ID == "4") { return '财务部'; } else { return '未分配部门'; } } }
+                   , { field: 'REASONS', title: '加班原因', width: 100 }
+                   , { field: 'CHECK_DATE', title: '审核时间', width: 180 }
+                   , { field: 'CHECK_NAME', title: '审核人', width: 100 }
+                   , { field: 'CHECK_FLAG', title: '审核状态', width: 160, templet: "#FLAGTpl" }
+                   // , { field: 'right', title: '操作', width: 100, align: "center", fixed: "right", toolbar: "#operationTpl" }
+               ]], toolbar: "#toolbarTpl"
+                
+                
+
+            });
+            //table.on('tool(tableId)', function (obj) {
+            //    var data = obj.data;
+            //    var layEvent = obj.event;
+            //    var tr = obj.tr;
+
+            //    if (layEvent === 'edit') { //编辑
+            //        layer.open({
+            //            title: "修改"+data.NAME+"的加班信息",
+            //            type: 2,
+            //            content: ["/ExtraWork/ExtraEdit/" + data.ID, "no"],
+            //            area: ["30%", "65%"]
+            //        });
+            //        obj.update({
+            //            username: '123'
+            //          , title: 'xxx'
+            //        });
+
+            //    }
+
+            //});
+        
+        });
+        function sub() {
+            layui.table.reload('tableId', {
+                url: "/ExtraWork/ExtraWorkList",
+                where: {
+                    CHECK_FLAG: $("#CHECK_FLAG").val()
+                }
+            });
+        }
+        function ExtraAdd() {
+            layer.open({
+                title: "加班申请",
+                type: 2,
+                content: "/ExtraWork/ExtraWorkAdd/", 
+                area: ["40%", "60%"]
+            });
+        }
+    </script>
+
+   
+</body>
+
+</html>

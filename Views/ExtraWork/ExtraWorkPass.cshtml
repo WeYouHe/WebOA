@@ -1,0 +1,202 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="renderer" content="webkit">
+    <link rel="stylesheet" href="/Content/css/font.css">
+    <link rel="stylesheet" href="/Content/css/xadmin.css">
+    <script src="/Content/js/jquery.min.js"></script>
+    <script type="text/javascript" src="/Content/lib/layui/layui.js" charset="utf-8"></script>
+    <script type="text/javascript" src="/Content/js/xadmin.js"></script>
+
+</head>
+
+<body>
+    <div class="x-nav">
+        <a class="layui-btn layui-btn-primary layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right" href="javascript:location.replace(location.href);" title="刷新">
+            <i class="layui-icon" style="line-height:38px">ဂ</i>
+        </a>
+    </div>
+    <div class="x-body">
+        <div class="layui-row">
+            <form class="layui-form"  onsubmit="return false;" >
+                <div class="layui-inline">
+                    姓名：
+                    <div class="layui-inline">
+                        <input class="layui-input" placeholder="请输入姓名" autocomplete="off" name="NAME" id="NAME">
+                    </div>
+                    部门：
+                    <div class="layui-inline">
+                        @Html.DropDownList("DEPART_ID", ViewBag.Depts as List<SelectListItem>, "--全部--")
+                    </div>
+                    审核状态：
+                    <div class="layui-inline">
+                        <select name="CHECK_FLAG" id="CHECK_FLAG">
+                            <option value="">请选择审核状态</option>
+                            <option value="0">未审核</option>
+                            <option value="1">审核通过</option>
+                            <option value="2">审核未通过</option>
+                        </select>
+                    </div>
+                    <button class="layui-btn" lay-filter="search" onclick="sub()">
+                        <i class="layui-icon layui-icon-search"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+        <table class="layui-hide" id="tableId" lay-filter="tableFilter"></table>
+
+        <script type="text/html" id="toolbarTpl">
+            <div class="layui-btn-container">
+                <button class="layui-btn layui-btn-sm layui-btn-normal" onclick="batchEnabled()">批量通过</button>
+                <button class="layui-btn layui-btn-sm layui-btn-warm" onclick="batchDisabled()">批量不通过</button>
+            </div>
+        </script>
+        <script type="text/html" id="FlagTpl">
+            {{#  if(d.CHECK_FLAG == 0){ }}
+            <span class="layui-btn layui-btn-normal layui-btn-xs">未审核</span>
+            {{#  } else if(d.CHECK_FLAG == 1) { }}
+            <span class="layui-btn layui-btn-warm layui-btn-xs">审核通过</span>
+            {{#  } else if(d.CHECK_FLAG == 2) { }}
+            <span class="layui-btn layui-btn-warm layui-btn-xs">审核未通过</span>
+            {{#  } }}
+        </script>
+        <script type="text/html" id="operationTpl">
+            <button type="button" lay-event="WorkPassYes" class="layui-btn layui-btn-primary layui-btn-sm">
+                通过
+            </button>
+            <button type="button" lay-event="WorkPassNo" class="layui-btn layui-btn-primary layui-btn-sm">
+                不通过
+            </button>
+            <button type="button" lay-event="WorkDel" class="layui-btn layui-btn-primary layui-btn-sm">
+                删除
+            </button>
+        </script>
+    </div>
+    <script>
+        var layui, table, $, exportData;
+        layui.use(['table', 'layer'], function () {
+            $ = layui.jquery;
+            table = layui.table;
+
+            //第一个实例
+            table.render({
+                elem: '#tableId'
+               , height: 530
+               , url: '/ExtraWork/ExtraWorkPass/'
+               , page: true//开启分页
+                , even: true
+               , method: "POST",
+                loading: true
+               , cols: [[ //表头
+                   { field: 'left', type: 'checkbox', fixed: 'left' },
+                   { field: 'ID',  align: 'conter', title:'ID', width:'80' },
+                    { field: 'NAME', title: '加班人', width: 100 }
+                   , { field: 'START_DATE', title: '开始时间', width: 180 }
+                   , { field: 'END_DATE', title: '结束时间', width: 180}
+                   , { field: 'DEPART_ID', title: '部门', width: 150, templet: function (res) { if (res.DEPART_ID == "1") { return '人事部'; } else if (res.DEPART_ID == "2") { return '行政部'; } else if (res.DEPART_ID == "3") { return '开发部'; } else if (res.DEPART_ID == "4") { return '财务部'; } else { return '未分配部门'; } } }
+                   , { field: 'REASONS', title: '加班原因', width: 100 }
+                   , { field: 'CHECK_DATE', title: '审核时间', width: 180 }
+                   , { field: 'CHECK_NAME', title: '审核人', width: 100 }
+                   , { field: 'CHECK_FLAG', title: '审核状态', width: 140, templet: "#FlagTpl" }
+                    , { field: 'right', title: '操作', width: 260, align: "center", fixed: "right", templet: "#operationTpl" }
+               ]]
+                , toolbar: '#toolbarTpl'
+
+            });
+            
+            table.on('tool(tableFilter)', function (obj) {
+                var data = obj.data;
+                var layEvent = obj.event;
+                var tr = obj.tr;
+                var id = data.ID;
+                if (layEvent === 'WorkDel') {
+                    layer.confirm('真的删除这行么', function (index) {
+                        $.post("/ExtraWork/Dels", { id: id }, function (res) {
+                            if (res.success) {
+                                obj.del();
+                                layer.msg("删除成功");
+                                layer.close(index);
+                                sub();
+                            } else {
+                                layer.msg(res.message);
+                            }
+                        }, "json");
+                    });
+                } else if (layEvent === 'WorkPassYes') {
+                    $.post("/ExtraWork/WorkPassYes/", { id: id }, function (res) {
+                        if (res.success) {
+                            layer.msg("更新状态成功");
+                            sub();
+                        } else {
+                            layer.msg(res.message);
+                        }
+                    }, "json");
+                } else if (layEvent === 'WorkPassNo') {
+                    $.post("/ExtraWork/WorkPassNo/", { id: id }, function (res) {
+                        if (res.success) {
+                            layer.msg("更新状态成功");
+                            sub();
+                        } else {
+                            layer.msg(res.message);
+                        }
+                    }, "json");
+                }
+
+            });
+        });
+        function sub() {
+            layui.table.reload('tableId', {
+                url: "/ExtraWork/ExtraWorkPass/",
+                where: {
+                    NAME: $("#NAME").val(),
+                    DEPART_ID: $("#DEPART_ID").val(),
+                    CHECK_FLAG: $("#CHECK_FLAG").val()
+                }
+            });
+        }
+
+        function batchEnabled() {
+            var checkStatus = table.checkStatus("tableId");
+            //console.log(checkStatus.data) //获取选中行的数据
+            var idsArray = [];
+            for (var i = 0; i < checkStatus.data.length; i++) {
+                var id = checkStatus.data[i].ID;
+                idsArray.push(id);
+            }
+            var ids = idsArray.join(",");
+            $.post("/ExtraWork/Pub", { ids: ids }, function (res) {
+                if (res.success) {
+                    layer.msg("批量审核通过成功")
+                    sub()
+                } else {
+                    layer.msg(res.message);
+                }
+
+            }, "json");
+        }
+        function batchDisabled() {
+            var checkStatus = table.checkStatus("tableId");
+            //console.log(checkStatus.data) //获取选中行的数据
+            var idsArray = [];
+            for (var i = 0; i < checkStatus.data.length; i++) {
+                var id = checkStatus.data[i].ID;
+                idsArray.push(id);
+            }
+            var ids = idsArray.join(",");
+            $.post("/ExtraWork/PubNO", { ids: ids }, function (res) {
+                if (res.success) {
+                    layer.msg("批量审核不通过成功")
+                    sub()
+                } else {
+                    layer.msg(res.message);
+                }
+
+            }, "json");
+        }
+
+    </script>
+
+</body>
+
+</html>

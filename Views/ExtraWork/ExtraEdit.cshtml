@@ -1,0 +1,87 @@
+﻿@model WebOA.Models.OverTime
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Edit</title>
+    <link href="~/Content/lib/layui/css/layui.css" rel="stylesheet" />
+    <link href="~/Content/css/x-admin.css" rel="stylesheet" />
+    <link href="~/Content/css/xadmin.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="x-body">
+        <form class="layui-form" id="SelfChange" name="SelfChange">
+            <div class="layui-form-item">
+                <label class="layui-form-label">申请人姓名</label>
+                <div class="layui-inline">
+                        <input type="text" name="NAME" id="NAME" disabled readonly="readonly" value="@Model.NAME" class="layui-input">
+                </div>
+                </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">部门名称</label>
+                <div class="layui-inline">
+                    @Html.DropDownList("DEPART_ID", ViewBag.Depts as List<SelectListItem>, "--请选择--")
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">开始时间</label>
+                <div class="layui-inline">
+                    <input type="datetime" autocomplete="off" name="START_DATE" id="START_DATE" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">结束时间</label>
+                <div class="layui-inline">
+                    <input type="datetime" autocomplete="off" name="END_DATE" id="END_DATE" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">加班原因</label>
+                <div class="layui-inline">
+                        <input type="text" name="REASONS" id="REASONS" value="@Model.REASONS" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button class="layui-btn" lay-filter="save" lay-submit="" type="button" onclick="xiugai()">修改</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <script src="~/Content/lib/layui/layui.js"></script>
+    <script src="~/Content/js/x-layui.js"></script>
+    <script>
+        var layer, form,table, $;
+        layui.use(['form', 'table','laydate'], function () {
+            $ = layui.jquery;
+            var form = layui.form,
+                laydate = layui.laydate,
+                table = layui.table;
+            layer = layui.layer;
+
+            laydate.render({
+                elem: '#START_DATE',
+                type: 'datetime',
+                format: 'yyyy-MM-dd HH:mm:ss'
+            });
+            laydate.render({
+                elem: '#END_DATE',
+                type: 'datetime',
+                format: 'yyyy-MM-dd HH:mm:ss'
+            });
+        });
+
+        function xiugai() {
+            $.post("/ExtraWork/ExtraEdit", $("#SelfChange").serialize(), function (res) {
+                if (res.success) {
+                    layer.msg("修改成功");
+                    var index = parent.layer.getFrameIndex(window.name); //获取窗口索引
+                    parent.layer.close(index);
+                } else {
+                    layer.alert("修改失败:" + res.message);
+                }
+            }, "json");
+        }
+    </script>
+</body>
+</html>

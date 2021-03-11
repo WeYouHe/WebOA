@@ -1,0 +1,103 @@
+﻿@model WebOA.Models.User
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/Content/css/font.css">
+    <link rel="stylesheet" href="/Content/css/xadmin.css">
+    <link href="~/Content/lib/layui/css/layui.css" rel="stylesheet" />
+    <script src="/Content/js/jquery.min.js"></script>
+    <script type="text/javascript" src="/Content/lib/layui/layui.js" charset="utf-8"></script>
+    <script type="text/javascript" src="/Content/js/xadmin.js"></script>
+</head>
+<body class="x-body">
+    <div>
+        <form class="layui-form" id="SelfChange" action="">
+            <div class="layui-form-item">
+                <label class="layui-form-label">姓名</label>
+                <div class="layui-input-inline">
+                    <input type="text" name="LEAVE_NAME" id="LEAVE_NAME" required lay-verify="required" value="@User.Identity.Name" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">部门名称</label>
+                <div class="layui-inline">
+                    @Html.DropDownList("DEPART_ID", ViewBag.Depts as List<SelectListItem>)
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">开始时间:</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" autocomplete="off" name="START_DATE" id="START_DATE">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">结束时间:</label>
+                <div class="layui-input-inline">
+                    <input  class="layui-input" autocomplete="off" name="END_DATE" id="END_DATE">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">请假类型：</label>
+                <div style="width:180px" class="layui-input-block">
+                    <select name="LEAVE_TYPE">
+                        <option value="">请选择请假类型</option>
+                        <option value="0">事假</option>
+                        <option value="1">病假</option>
+                        <option value="2">产假</option>
+                        <option value="3">婚假</option>
+                    </select>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">请假原因</label>
+                <div class="layui-inline">
+                    
+                        <textarea name="REASONS" id="REASONS" required lay-verify="REASONS" placeholder="请输入" class="layui-textarea"></textarea>
+                    
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button class="layui-btn" lay-filter="save" lay-submit="" type="button" onclick="add()">
+                        确定
+                    </button>
+                    <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                </div>
+            </div>
+
+        </form>
+        <script src="/Content/lib/layui/layui.js"></script>
+        <script>
+
+            layui.use('laydate', function () {
+                var laydate = layui.laydate;
+                //执行一个laydate实例
+                laydate.render({
+                    elem: '#START_DATE',
+                    type: 'datetime',
+                    format: 'yyyy-MM-dd HH:mm:ss'
+                });
+                laydate.render({
+                    elem: '#END_DATE',
+                    type: 'datetime',
+                    format: 'yyyy-MM-dd HH:mm:ss'
+                });
+            });
+            function add() {
+                $.post("/Leave/LeaveAdd/", $("#SelfChange").serialize(), function (res) {
+                    if (res.success) {
+                        layer.msg("请假申请提交成功");
+                        var index = parent.layer.getFrameIndex(window.name);
+                        parent.layer.close(index);
+                        parent.layer.render();
+                    } else {
+                        layer.alert("请假申请失败:" + res.message);
+                    }
+                }, "json");
+            }
+        </script>
+    </div>
+</body>
+</html>

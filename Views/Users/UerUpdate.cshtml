@@ -1,0 +1,183 @@
+﻿@model WebOA.Models.User
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/Content/css/font.css">
+    <link rel="stylesheet" href="/Content/css/xadmin.css">
+    <script src="/Content/js/jquery.min.js"></script>
+    <script type="text/javascript" src="/Content/lib/layui/layui.js" charset="utf-8"></script>
+    <script type="text/javascript" src="/Content/js/xadmin.js"></script>
+
+</head>
+
+<body>
+    <div class="x-body">
+        <form class="layui-form layui-form-pane layui-col-md12" id="UserUpdate">
+            <div style="">
+                <input style="display:none" type="text" name="Id" class="layui-input" value="@Model.Id" />
+            </div>
+            <div class="layui-form-item">
+                <label for="username" class="layui-form-label">
+                    <span class="x-red">*</span>登录名
+                </label>
+                <div class="layui-input-inline">
+                    <input type="text" id="NAME" name="NAME" required lay-verify="required"
+                           autocomplete="off" class="layui-input" value="@Model.NAME">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <div class="layui-upload">
+                    <label class="layui-form-label">头像</label>
+                    <input type="text" id="PORTRAIT" value="@Model.PORTRAIT" name="PORTRAIT" style="display:none;" placeholder="请上传图片" autocomplete="off" class="layui-input"  />
+                    <div class="layui-input-inline">
+                        <img id="demo1" src="@Model.PORTRAIT" class="layui-upload-img" style="width:320px; height:213px" />
+                        <button type="button" class="layui-btn" id="uploadImg">
+                            <i class="layui-icon">&#xe67c;</i>上传图片
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label for="phone" class="layui-form-label">
+                    <span class="x-red">*</span>手机号码
+                </label>
+                <div class="layui-input-inline">
+                    <input type="text" id="PHONE" name="PHONE" required 
+                           autocomplete="off" class="layui-input" value="@Model.PHONE">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label for="L_email" class="layui-form-label">
+                    <span class="x-red">*</span>邮箱
+                </label>
+                <div class="layui-input-inline">
+                    <input type="text" id="EMAIL" name="EMAIL" required lay-verify="email"
+                           autocomplete="off" class="layui-input" value="@Model.EMAIL">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label"><span class="x-red">*</span>角色</label>
+                <div class="layui-input-block">
+                    <div class="layui-inline">
+                        <select name="ROLEID" id="ROLEID">
+                            @{
+                                if (Model.ROLEID == 0)
+                                {
+                                    <option value="1" selected>员工</option>
+                                    <option value="2">管理员</option>
+                                }
+                                else
+                                {
+                                    <option value="1">员工</option>
+                                    <option value="2" selected>管理员</option>
+                                }
+                            }
+
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label"><span class="x-red">*</span>部门</label>
+                <div class="layui-input-block">
+                    <div class="layui-inline">
+                        @Html.DropDownList("DEPAR_ID", ViewBag.Depts as List<SelectListItem>, "--全部--")
+                    </div>
+                </div>
+            </div>
+            @*<div class="layui-form-item">
+                    <label class="layui-form-label"><span class="x-red">*</span>状态</label>
+                    <div class="layui-input-block">
+                        <div class="layui-inline">
+                            <input type="checkbox" name="STATUS" id="STATUS" lay-skin="switch" lay-filter="component-form-switchTest" lay-text="启用|停用">
+                        </div>
+                    </div>
+                </div>*@
+            <div class="layui-form-item">
+                <label class="layui-form-label"><span class="x-red">*</span>性别</label>
+                <div class="layui-input-block">
+                    <div class="layui-inline">
+                        @{
+
+                            if (Model.SEX == "女")
+                            {
+                                <input type="radio" name="SEX" value="男" title="男">
+                                <input type="radio" name="SEX" value="女" title="女" checked>
+                            }
+                            else
+                            {
+                                <input type="radio" name="SEX" value="男" title="男" checked>
+                                <input type="radio" name="SEX" value="女" title="女">
+                            }
+                        }
+
+                    </div>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <button class="layui-btn" lay-filter="Update" onclick="Update()" lay-submit="">修改</button>
+                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            </div>
+        </form>
+    </div>
+    <script src="/Content/js/data.js"></script>
+    <script>
+        var defaults = {
+            s1: 'provid',
+            s2: 'cityid',
+            s3: 'areaid'
+        };
+        var $, form, layer, layedit, upload;
+        layui.use(['form', 'layer', 'layedit', 'upload'], function () {
+            $ = layui.jquery;
+            form = layui.form,
+               layer = layui.layer,
+               layedit = layui.layedit,
+               upload = layui.upload;
+
+            upload.render({
+                elem: '#uploadImg',    //注意：id为uploadImg的input的type值必须为file
+                url: '/Users/UploadPhoto',  //服务器端需要定义此方法
+                done: function (res) {
+                    if (res.success) {
+                        $("#PORTRAIT").val(res.remake); //上传成功，remark中存放着新文件存储的路径，写到input中，方便后续的保存操作。
+                        $("#demo1").attr("src", res.remake);  //attr给属性赋值，预览下已经传到服务器的图片
+                        layer.msg("修改成功");
+                    }
+                    else
+                        layer.msg("修改失败:" + res.message);
+                }
+            });
+
+        });
+        layui.use(['form', 'layer', 'laydate'], function () {
+            $ = layui.jquery;
+            var form = layui.form,
+             laydate = layui.laydate,
+            layer = layui.layer;
+            laydate.render({
+                elem: '#BIRTHDAY',
+                format: 'yyyy-MM-dd'
+            });
+
+
+        });
+        function Update() {
+            $.post("/Users/Update", $("#UserUpdate").serialize(), function (res) {
+                if (res.success) {
+                    layer.msg("修改员工信息成功");
+                    var index = parent.layer.getFrameIndex(window.name);
+                    parent.layer.close(index);
+                } else {
+                    layer.alert("失败:" + res.message);
+                }
+            }, "json");
+        }
+    </script>
+</body>
+
+</html>

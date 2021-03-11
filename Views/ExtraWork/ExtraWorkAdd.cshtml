@@ -1,0 +1,93 @@
+﻿
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/Content/css/font.css">
+    <link rel="stylesheet" href="/Content/css/xadmin.css">
+    <script src="/Content/js/jquery.min.js"></script>
+    <script type="text/javascript" src="/Content/lib/layui/layui.js" charset="utf-8"></script>
+    <script type="text/javascript" src="/Content/js/xadmin.js"></script>
+</head>
+
+<body>
+    <div class="x-body">
+        <form class="layui-form" id="SelfChange" name="SelfChange"  method="post">
+            <div class="layui-form-item">
+                <label class="layui-form-label">申请人姓名</label>
+                <div class="layui-inline">
+                    <input type="text" name="NAME" disabled value="@User.Identity.Name" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">开始时间</label>
+                <div class="layui-inline">
+                    <input type="datetime" autocomplete="off" name="START_DATE" id="START_DATE" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">结束时间</label>
+                <div class="layui-inline">
+                    <input type="datetime" autocomplete="off" name="END_DATE" id="END_DATE" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">部门名称</label>
+                <div class="layui-inline">
+                    @Html.DropDownList("DEPART_ID", ViewBag.Depts as List<SelectListItem>, "--全部--")
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">加班原因</label>
+                <div class="layui-inline">
+                    <textarea name="REASONS" autocomplete="off" required  placeholder="请输入" class="layui-textarea"></textarea>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button class="layui-btn" lay-filter="save" type="button" onclick="add()">
+                        确定
+                    </button>
+                    <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        layui.use(['form','layer','laydate'], function(){
+            $ = layui.jquery;
+            var form = layui.form,
+             laydate = layui.laydate,
+            layer = layui.layer;
+
+            laydate.render({
+                elem: '#START_DATE',
+                type: 'datetime',
+                format: 'yyyy-MM-dd HH:mm:ss'
+            });
+            laydate.render({
+                elem: '#END_DATE',
+                type: 'datetime',
+                format: 'yyyy-MM-dd HH:mm:ss'
+            });
+
+        });
+
+        function add() {
+            $.post("/ExtraWork/ExtraWorkAdd/", $("#SelfChange").serialize(), function (res) {
+                if (res.success) {
+                    layer.msg("添加申请成功");
+                    var index = parent.layer.getFrameIndex(window.name);
+                    parent.layer.close(index);
+                } else {
+                    layer.alert("添加申请失败:" + res.message);
+                }
+            }, "json");
+        }
+    </script>
+</body>
+
+</html>

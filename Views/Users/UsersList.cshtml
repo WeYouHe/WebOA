@@ -1,0 +1,206 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="renderer" content="webkit">
+    <link rel="stylesheet" href="/Content/css/font.css">
+    <link rel="stylesheet" href="/Content/css/xadmin.css">
+    <script src="/Content/js/jquery.min.js"></script>
+    <script type="text/javascript" src="/Content/lib/layui/layui.js" charset="utf-8"></script>
+    <script type="text/javascript" src="/Content/js/xadmin.js"></script>
+</head>
+
+<body>
+    <div class="x-nav">
+        <a class="layui-btn layui-btn-primary layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right" href="javascript:location.replace(location.href);" title="刷新">
+            <i class="layui-icon" style="line-height:38px">ဂ</i>
+        </a>
+    </div>
+    <div class="x-body">
+        <div class="layui-row">
+            <form class="layui-form" onsubmit="return false;" >
+                    员工姓名：
+                    <div class="layui-inline">
+                        <input class="layui-input" placeholder="请输入员工姓名" autocomplete="off" name="name" id="name">
+                        </div>
+                    角色类型：
+                    <div class="layui-inline">
+                        <select name="RoleType" id="RoleType">
+                            <option value="">--请选择角色--</option>
+                            <option value="1">员工</option>
+                            <option value="2">管理员</option>
+                        </select>
+                    </div>
+                部门：
+                <div class="layui-inline">
+                   @Html.DropDownList("DEPAR_ID", ViewBag.Depts as List<SelectListItem>, "--全部--")
+                </div>
+                    员工状态：
+                    <div class="layui-inline">
+                        <select name="StatusIS" id="StatusIS">
+                            <option value="">--请选择员工状态--</option>
+                            <option value="0">启用</option>
+                            <option value="1">禁用</option>
+                        </select>
+                    </div>
+                        <button class="layui-btn" onclick="Sub()" lay-filter="search" ><i class="layui-icon layui-icon-search"></i></button>
+                </form> 
+            </div>
+        <table class="layui-hide" id="tableId" lay-filter="tableId"></table>
+
+        <script type="text/html" id="toolbarTpl">
+            <div class="layui-btn-container">
+                <button class="layui-btn layui-btn-sm layui-btn-normal" onclick="batchEnabled()">批量启用</button>
+                <button class="layui-btn layui-btn-sm layui-btn-warm" onclick="batchDisabled()" >批量禁用</button>
+                <button class="layui-btn layui-btn-sm layui-btn-warm" onclick="PubDel()" >批量删除</button>
+            </div>
+        </script>
+        <script type="text/html" id="roleTpl">
+            {{#  if(d.ROLEID == 1){ }}
+            <span class="layui-btn layui-btn-normal layui-btn-xs">员工</span>
+            {{#  } else if(d.ROLEID == 2) { }}
+            <span class="layui-btn layui-btn-warm layui-btn-xs">管理员</span>
+            {{#  } }}
+        </script>
+        <script type="text/html" id="statusTpl">
+            {{#  if(d.STATUS == 0){ }}
+            <span class="layui-btn layui-btn-normal layui-btn-xs">启用</span>
+            {{#  } else if(d.STATUS == 1) { }}
+            <span class="layui-btn layui-btn-warm layui-btn-xs">禁用</span>
+            {{#  } }}
+        </script>
+        <script type="text/html" id="operationTpl">
+            <a href="javascript:" title="编辑" lay-event="edit"><i class="layui-icon">&#xe642;</i></a>
+            <a href="javascript:" title="删除" lay-event="del"><i class="layui-icon">&#xe640;</i></a>
+        </script>
+    </div>
+
+    <script>
+        var layui, table, $, layer;
+        layui.use(['table', 'layer'], function () {
+            $ = layui.jquery;
+            table = layui.table;
+            
+            //第一个实例
+            table.render({
+                elem: '#tableId'
+               , height: 550
+               , url: '/Users/UsersList/'
+               , page: true 
+               , method: "POST"
+               , cols: [[
+                   { field: 'left', type: 'checkbox', fixed: 'left' }
+                   , { field: 'Id', title: 'ID', align: "center", width: 65 }
+                   , { field: 'NAME', title: '姓名', align: "center", width: 80 }
+                   , { field: 'SEX', title: '性别', align: "center", width: 80 }
+                   , { field: 'BIRTHDAY', title: '生日', align: "center", width: 200 }
+                   , { field: 'EMAIL', title: 'EMAIL', align: "center", width: 150 }
+                   , { field: 'PHONE', title: '手机', align: "center", width: 150 }
+                   , { field: 'ADDRESS', title: '地址', align: "center", width: 260 }
+                    , { field: 'LOGINS', title: '登录次数', align: "center", width: 80 }
+                   , { field: 'DEPAR_ID', title: '部门', align: "center", width: 150, templet: function (res) { if (res.DEPAR_ID == "1") { return '人事部'; } else if (res.DEPAR_ID == "2") { return '行政部'; } else if (res.DEPAR_ID == "3") { return '开发部'; } else if (res.DEPAR_ID == "4") { return '财务部'; } else { return '未分配部门'; } } }
+                   , { field: 'STATUS', title: '状态', align: "center", width: 100, templet: "#statusTpl" }
+                    , { field: 'ROLEID', title: '角色', align: "center", width: 100, templet: "#roleTpl" }
+                    , { field: 'right', title: '操作', width: 100, align: "center", fixed: "right", toolbar: "#operationTpl" }
+               ]], toolbar: "#toolbarTpl"
+            });
+            table.on('tool(tableId)', function (obj) {
+                var data = obj.data;
+                var layEvent = obj.event;
+                var tr = obj.tr;
+                if (layEvent === 'del') {
+                    layer.confirm('真的删除这行么', function (index) {
+                        var id = data.Id;
+                        $.post("/Users/Dels", { id: id }, function (res) {
+                            if (res.success) {
+                                obj.del();
+                                layer.msg("删除成功");
+                                Sub();
+                            } else {
+                                layer.msg(res.message);
+                                layer.close(index);
+                            }
+                        }, "json");
+                    });
+                } else if (layEvent == 'edit') {
+                    layer.open({
+                        title: "修改用户信息",
+                        type: 2,
+                        content: "/Users/UerUpdate/" + data.Id,
+                        area: ["500px", "600px"]
+                    });
+                    obj.update({
+                        username: '123'
+                      , title: 'xxx'
+                    });
+                }
+
+            });
+
+        });
+        function Sub() {
+            layui.table.reload('tableId', {
+                url: "/Users/UsersList/",
+                where: {
+                    name: $("#name").val(),
+                    RoleType: $("#RoleType").val(),
+                    DEPAR_ID: $("#DEPAR_ID").val(),
+                    StatusIS: $("#StatusIS").val()
+                }
+            });
+        }
+        function batchEnabled() {
+            var checkStatus = table.checkStatus("tableId");
+            var idsArray = [];
+            for (var i = 0; i < checkStatus.data.length; i++) {
+                var ID = checkStatus.data[i].Id;
+                idsArray.push(ID);
+            }
+            var ids = idsArray.join(",");
+            $.post("/Users/Pub", { ids: ids }, function (res) {
+                if (res.success) {
+                    layer.msg("批量启用成功")
+                    sub()
+                } else {
+                    layer.msg(res.message);
+                }
+            }, "json");
+        }
+        function batchDisabled() {
+            var checkStatus = table.checkStatus("tableId");
+            var idsArray = [];
+            for (var i = 0; i < checkStatus.data.length; i++) {
+                var ID = checkStatus.data[i].Id;
+                idsArray.push(ID);
+            }
+            var ids = idsArray.join(",");
+            $.post("/Users/PubNO", { ids: ids }, function (res) {
+                if (res.success) {
+                    layer.msg("批量禁用成功")
+                    sub()
+                } else {
+                    layer.msg(res.message);
+                }
+            }, "json");
+        }
+        function PubDel() {
+            var checkStatus = table.checkStatus("tableId");
+            var idsArray = [];
+            for (var i = 0; i < checkStatus.data.length; i++) {
+                var ID = checkStatus.data[i].Id;
+                idsArray.push(ID);
+            }
+            var ids = idsArray.join(",");
+            $.post("/Users/PubDels", { ids: ids }, function (res) {
+                if (res.success) {
+                    layer.msg("批量删除成功")
+                    sub()
+                } else {
+                    layer.msg(res.message);
+                }
+            }, "json");
+        }
+    </script>
+</body>
+
+</html>

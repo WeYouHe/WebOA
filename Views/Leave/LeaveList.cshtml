@@ -1,0 +1,99 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="renderer" content="webkit">
+    @*<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <link rel="shortcut icon" href="/Content/images/favicon.ico" type="image/x-icon" />*@
+    <link rel="stylesheet" href="/Content/css/font.css">
+    <link rel="stylesheet" href="/Content/css/xadmin.css">
+    <script src="/Content/js/jquery.min.js"></script>
+    <script type="text/javascript" src="/Content/lib/layui/layui.js" charset="utf-8"></script>
+    <script type="text/javascript" src="/Content/js/xadmin.js"></script>
+</head>
+<body>
+    <div class="x-nav">
+        <a class="layui-btn layui-btn-primary layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right" href="javascript:location.replace(location.href);" title="刷新">
+            <i class="layui-icon" style="line-height:38px">ဂ</i>
+        </a>
+    </div>
+    <div class="x-body">
+        <div class="layui-row">
+            <form class="layui-form" onsubmit="return false;">
+                请假类型：
+                <div class="layui-inline">
+                        <select name="LEAVE_TYPE" id="LEAVE_TYPE" >
+                            <option value="">请选择请假类型</option>
+                            <option value="0">事假</option>
+                            <option value="1">病假</option>
+                            <option value="2">产假</option>
+                            <option value="3">婚假</option>
+                        </select>
+                </div>
+                <button class="layui-btn" type="button" data-type="reload" onclick="sub()">搜索</button>
+            </form>
+        </div>
+        <table class="layui-hide" id="tableId" lay-filter="tableFilter"></table>
+        <script type="text/html" id="toolbarTpl">
+            <div class="layui-btn-container">
+                <button class="layui-btn layui-btn-sm layui-btn-normal" onclick="LeaveAdd()">请假申请</button>
+            </div>
+        </script>
+    </div>
+    <script type="text/html" id="FLAGTpl">
+        {{#  if(d.CHECK_FLAG == 0){ }}
+        <span class="layui-btn layui-btn-normal layui-btn-xs">待审核</span>
+        {{#  } else if(d.CHECK_FLAG == 1) { }}
+        <span class="layui-btn layui-btn-warm layui-btn-xs">审核通过</span>
+        {{#  } else if(d.CHECK_FLAG == 2) { }}
+        <span class="layui-btn layui-btn-warm layui-btn-xs">审核未通过</span>
+        {{#  } }}
+    </script>
+    <script>
+        var layui, table, $;
+        layui.use(['table', 'layer'], function () {
+            $ = layui.jquery;
+            table = layui.table;
+            //第一个实例
+            table.render({
+                elem: '#tableId'
+               , height: 400
+               , url: '/Leave/LeaveList'
+               , page: true//开启分页
+               , method: "post"
+               , cols: [[ //表头
+                    { field: 'ID', title: 'ID', width: 100 }
+                   , { field: 'LEAVE_NAME', title: '请假人', width: 120 }
+                   , { field: 'DEPART_ID', title: '部门', width: 150, templet: function (res) { if (res.DEPART_ID == "1") { return '人事部'; } else if (res.DEPART_ID == "2") { return '行政部'; } else if (res.DEPART_ID == "3") { return '开发部'; } else if (res.DEPART_ID == "4") { return '财务部'; } else { return '未分配部门'; } } }
+                   , { field: 'START_DATE', title: '请假开始时间', width: 150 }
+                   , { field: 'END_DATE', title: '请假结束时间', width: 150 }
+                   , { field: 'LEAVE_TYPE', title: '请假类型', width: 160, templet: function (res) { if (res.LEAVE_TYPE == "0") { return '事假'; } else if (res.LEAVE_TYPE == "1") { return '病假'; } else if (res.LEAVE_TYPE == "2") { return '产假'; } else if (res.LEAVE_TYPE == "3") { return '婚假'; } else { return '未说明'; } } }
+                   , { field: 'REASONS', title: '请假原因', width: 160 }
+                   , { field: 'CHECK_DATE', title: '回复时间', width: 160 }
+                   , { field: 'CHECK_FLAG', title: '回复状态', width: 160, templet: "#FLAGTpl" }
+                   , { field: 'CHECK_NAME', title: '回复人', width: 110, align: "center" }
+               ]], toolbar: "#toolbarTpl"
+            });
+            
+        });
+        function sub() {
+            layui.table.reload('tableId', {
+                url: "/Leave/LeaveList",
+                where: {
+                    LEAVE_TYPE: $("#LEAVE_TYPE").val()
+                }
+            });
+        }
+        function LeaveAdd() {
+            layer.open({
+                title:   "请假申请",
+                type: 2,
+                content: "/Leave/LeaveAdd/",
+                area: ["40%", "65%"]
+            });
+        }
+
+    </script>
+</body>
+
+</html>

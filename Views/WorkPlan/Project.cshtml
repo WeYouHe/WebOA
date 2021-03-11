@@ -1,0 +1,167 @@
+﻿
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="renderer" content="webkit">
+    <link rel="stylesheet" href="/Content/css/font.css">
+    <link rel="stylesheet" href="/Content/css/xadmin.css">
+    <script src="/Content/js/jquery.min.js"></script>
+    <script type="text/javascript" src="/Content/lib/layui/layui.js" charset="utf-8"></script>
+    <script type="text/javascript" src="/Content/js/xadmin.js"></script>
+</head>
+
+<body>
+    <div class="x-nav">
+        <a class="layui-btn layui-btn-primary layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right" href="javascript:location.replace(location.href);" title="刷新">
+            <i class="layui-icon" style="line-height:38px">ဂ</i>
+        </a>
+    </div>
+    <div class="x-body">
+        <div class="layui-row">
+            <form class="layui-form " onsubmit="return false;">
+                <div class="layui-inline">
+                    
+                    <div class="layui-inline">
+                        <input class="layui-input" placeholder="请输入计划名称" autocomplete="off" name="Title" id="Title">
+                    </div>
+                    <div class="layui-inline">
+                        <select name="Status" id="Status" lay-verify="">
+                            <option value="">--请选择--</option>
+                            <option value="0">未开始</option>
+                            <option value="1">进行中</option>
+                            <option value="2">已完成</option>
+                        </select>
+                    </div>
+                    <button class="layui-btn" lay-filter="search" onclick="sub()">
+                        <i class="layui-icon layui-icon-search"></i>
+                    </button>
+                </div>
+            </form> 
+        </div>
+        <table class="layui-hide" id="tableId" lay-filter="tableId"></table>
+
+        <script type="text/html" id="toolbarTpl">
+            <div class="layui-btn-container">
+                <button class="layui-btn layui-btn-sm layui-btn-normal" onclick="batchStart()" >批量开始</button>
+                <button class="layui-btn layui-btn-sm layui-btn-warm" onclick="batchEnd()" >批量结束</button>
+            </div>
+        </script>
+        <script type="text/html" id="statusTpl">
+            {{#  if(d.IN_FLAG == 0){ }}
+            <span class="layui-btn layui-btn-normal layui-btn-xs">未开始</span>
+            {{#  } else if(d.IN_FLAG == 1) { }}
+            <span class="layui-btn layui-btn-warm layui-btn-xs">进行中</span>
+            {{#  } else if(d.IN_FLAG == 2) { }}
+            <span class="layui-btn layui-btn-danger layui-btn-xs">已完成</span>
+            {{#  } }}
+        </script>
+        <script type="text/html" id="statusUpdat">
+            <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="PlantStart">开始</a>
+            <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="PlantEnd">结束</a>
+            @*<button class="layui-btn layui-btn-normal layui-btn-xs" lay-event="PlantStart">开始</button>
+            <button class="layui-btn layui-btn-warm layui-btn-xs" lay-event="PlantEnd">结束</button>*@
+        </script>
+    </div>
+    <script>
+        var layui, table, $;
+        layui.use(['table', 'layer'], function () {
+            $ = layui.jquery;
+            table = layui.table;
+            //第一个实例
+            table.render({
+                elem: '#tableId'
+               , height: 500
+               , url: '/WorkPlan/Project'
+               , page: true//开启分页
+               , method: "post"
+               , cols: [[ //表头
+                   { field: 'left', type: 'checkbox', fixed: 'left' }
+                   , { field: 'ID', title: 'ID', width: 50 }
+                   , { field: 'PLANT_NAME', title: '计划名称', width: 120 }
+                   , { field: 'CREA_DATE', title: '工作创建时间', width: 150 }
+                   , { field: 'START_DATE', title: '工作开始时间', width: 150 }
+                   , { field: 'END_DATE', title: '任务结束时间', width: 150 }
+                   , { field: 'CREA_USER', title: '创建人', width: 100 }
+                   , { field: 'PLANT_INFO', title: '内容', width: 160 }
+                   , { field: 'IN_FLAG', title: '任务状态', width: 110, align: "center", templet: "#statusTpl" }
+                    , { field: 'right', title: '操作', width: 200, align: "center", fixed: "right", templet: "#statusUpdat" }
+               ]]
+                , toolbar: '#toolbarTpl'
+            });
+            table.on('tool(tableId)', function (obj) {
+                var data = obj.data; 
+                var layEvent = obj.event; 
+                var tr = obj.tr; 
+                var id = data.ID;
+                if (layEvent === 'PlantStart') {
+                    $.post("/WorkPlan/StartPlant/", { id: id }, function (res) {
+                        if (res.success) {
+                            layer.msg("更新状态成功");
+                            sub();
+                        } else {
+                            layer.msg(res.message);
+                        }
+                    }, "json");
+                } else if (layEvent === 'PlantEnd') {
+                    $.post("/WorkPlan/EndStart/", { id: id }, function (res) {
+                        if (res.success) {
+                            layer.msg("更新状态成功");
+                            sub();
+                        } else {
+                            layer.msg(res.message);
+                        }
+                    }, "json");
+                }
+            });
+        });
+        function sub() {
+            layui.table.reload('tableId', {
+                url: "/WorkPlan/Project/",
+                where: {
+                    Title: $("#Title").val(),
+                    Status: $("#Status").val()
+                }
+            });
+        }
+        function batchStart() {
+            var checkStatus = table.checkStatus("tableId");
+            var idsArray = [];
+            for (var i = 0; i < checkStatus.data.length; i++) {
+                var ID = checkStatus.data[i].ID;
+                idsArray.push(ID);
+            }
+            var ids = idsArray.join(",");
+            $.post("/WorkPlan/PubStart/", { ids: ids }, function (res) {
+                if (res.success) {
+                    layer.msg("批量开始成功")
+                    sub()
+                } else {
+                    layer.msg(res.message);
+                }
+            }, "json");
+        }
+        function batchEnd() {
+            var checkStatus = table.checkStatus("tableId");
+            var idsArray = [];
+            for (var i = 0; i < checkStatus.data.length; i++) {
+                var ID = checkStatus.data[i].ID;
+                idsArray.push(ID);
+            }
+            var ids = idsArray.join(",");
+            $.post("/WorkPlan/PubEnd/", { ids: ids }, function (res) {
+                if (res.success) {
+                    layer.msg("批量结束成功")
+                    sub()
+                } else {
+                    layer.msg(res.message);
+                }
+            }, "json");
+        }
+
+
+    </script>
+</body>
+
+</html>
