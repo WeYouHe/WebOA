@@ -23,17 +23,25 @@ namespace WebOA.Controllers
         [HttpPost]
         public ActionResult LeaveList(string LEAVE_TYPE,  int Page = 1, int PageSize = 10)
         {
-            db.Configuration.LazyLoadingEnabled = false;
-            db.Configuration.ProxyCreationEnabled = false;
-            var query = db.Leaves.Where(x => x.LEAVE_NAME==User.Identity.Name);
-            if (!string.IsNullOrEmpty(LEAVE_TYPE))
+            try
             {
-                query = query.Where(x => x.LEAVE_TYPE.ToString() == LEAVE_TYPE);
+                db.Configuration.LazyLoadingEnabled = false;
+                db.Configuration.ProxyCreationEnabled = false;
+                var query = db.Leaves.Where(x => x.LEAVE_NAME == User.Identity.Name);
+                if (!string.IsNullOrEmpty(LEAVE_TYPE))
+                {
+                    query = query.Where(x => x.LEAVE_TYPE.ToString() == LEAVE_TYPE);
+                }
+                int total = query.Count();
+                var list = query.OrderBy(x => x.ID).Skip((Page - 1) * PageSize).Take(PageSize).ToList();
+                var str = PagerDate.PagedData<Leave>(list, total);
+                return Content(str);
             }
-            int total = query.Count();
-            var list = query.OrderBy(x => x.ID).Skip((Page - 1) * PageSize).Take(PageSize).ToList();
-            var str = PagerDate.PagedData<Leave>(list, total);
-            return Content(str);
+            catch (Exception)
+            {
+
+                throw;
+            }
         }
         [HttpGet]
         public ActionResult LeaveAdd()
